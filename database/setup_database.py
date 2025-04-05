@@ -60,6 +60,33 @@ class Course(Base):
     specialite = Column(String)
     hippodrome_code = Column(String, ForeignKey('pmu_hippodromes.code'))
     ordreArrivee= Column(JSON)
+
+
+class Participant(Base):
+    __tablename__ = 'pmu_participants'
+
+    id = Column(Integer, primary_key=True)
+    course_id = Column(Integer, ForeignKey('pmu_courses.id'))
+    numPmu = Column(Integer)
+    nom = Column(String)
+    age = Column(Integer)
+    sexe = Column(String)
+    race = Column(String)
+    statut = Column(String)
+    driver = Column(String)
+    entraineur = Column(String)
+    proprietaire = Column(String)
+    musique = Column(String)
+    incident = Column(String)
+    ordreArrivee = Column(Integer)
+    cote = Column(Float)
+    tempsObtenu = Column(Integer)
+    reductionKilometrique = Column(Integer)
+    commentaire = Column(String)
+    deferre = Column(String)
+
+
+
     # incidents = Column(String)
 
     # Add other fields as needed
