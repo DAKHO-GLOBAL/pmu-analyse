@@ -50,4 +50,26 @@ def call_api_between_dates(start_date, end_date):
 
 
 def scrap_participants(current_date, reunion_number, data):
-    pass
+    """Récupère les participants pour chaque course d'une réunion"""
+    courses = data.get('courses', [])
+    
+    for course in courses:
+        course_number = course.get('numOrdre')
+        course_id = f"{current_date.strftime('%d%m%Y')}R{reunion_number}C{course_number}"
+        
+        # Construire l'URL de l'API pour les participants
+        url = f"https://online.turfinfo.api.pmu.fr/rest/client/61/programme/{current_date.strftime('%d%m%Y')}/R{reunion_number}/C{course_number}/participants?specialisation=INTERNET"
+        
+        headers = {
+            'accept': 'application/json',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        
+        logging.debug(f"Fetching participants for {course_id}")
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            participants_data = response.json()
+            save_participants_data(participants_data, course_id)
+        else:
+            logging.error(f"Failed to fetch participants for {course_id}. Status code: {response.status_code}")
