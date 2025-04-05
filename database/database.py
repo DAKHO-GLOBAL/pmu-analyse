@@ -65,3 +65,49 @@ def save_courses(courses_data):
             session.add(course_obj)
             logging.info("Saving Course data")
             session.commit()
+
+
+def save_participants_data(participants_data, course_id):
+    """Sauvegarde les données des participants dans la base de données"""
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    
+    # Récupérer l'ID de la course
+    course = session.query(Course).filter_by(
+        numReunion=int(course_id.split('R')[1].split('C')[0]),
+        numOrdre=int(course_id.split('C')[1])
+    ).first()
+    
+    if not course:
+        logging.error(f"Course {course_id} not found in database")
+        session.close()
+        return
+    
+    participants = participants_data.get('participants', [])
+    
+    for participant_data in participants:
+        # Vérifier si le participant existe déjà
+        existing_participant = session.query(Participant).filter_by(
+            course_id=course.id,
+            numPmu=participant_data.get('numPmu')
+        ).first()
+        
+        if not existing_participant:
+            # Filtrer les attributs valides
+            valid_attributes = [attr.name for attr in Participant.__table__.columns]
+            filtered_data = {key: value for key, value in participant_data.items() if key in valid_attributes}
+            
+            # Traiter les champs spécifiques
+            if 'dernierRapportDirect' in participant_data:
+                filtered_data['cote'] = participant_data['dernierRapportDirect'].get('rapport')
+            
+            if 'commentaireApresCourse' in participant_data:
+                filtered_data['commentaire'] = participant_data['commentaireApresCourse'].get('texte')
+            
+            # Créer et sauvegarder le participant
+            participant = Participant(course_id=course.id, **filtered_data)
+            session.add(participant)
+            logging.info(f"Saving participant {participant_data.get('nom')} for course {course_id}")
+    
+    session.commit()
+    session.close()
